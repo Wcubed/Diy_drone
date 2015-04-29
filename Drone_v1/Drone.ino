@@ -126,11 +126,11 @@ void baseStationLost() {
 
 float throttleCalculation(float angle, float angleSpeed) {
   float output;
-  
+  angle = radians(int(degrees(angle)));
   if (angle > 0) {
-    output = angle * maxThrottleDerivation + (float)(angleSpeed/3000) * maxThrottleDerivation;
+    output = sin(angle) * maxThrottleDerivation + 0.8 * (float)(angleSpeed/3000) * maxThrottleDerivation;
   } else {
-    output = angle * maxThrottleDerivation + (float)(angleSpeed/3000) * maxThrottleDerivation;
+    output = sin(angle) * maxThrottleDerivation + 0.8 * (float)(angleSpeed/3000) * maxThrottleDerivation;
   }
   
   return output;
