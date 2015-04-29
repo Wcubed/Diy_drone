@@ -18,7 +18,7 @@ Servo motors[4];
 int throttle[4];
 
 // DEBUG
-int startDelay = 100;
+int startDelay = 110;
 int startCount = 0;
 int throttleDelay = 10;
 int throttleCount = 0;
