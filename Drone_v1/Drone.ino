@@ -15,7 +15,8 @@ RF24 radio(CE_PIN, CSN_PIN);
 
 Servo motors[4];
 
-int throttle[4];
+int inputThrottle[1];
+int throttle[4] = {0, 0, 0, 0};
 
 // DEBUG
 int startDelay = 110;
@@ -24,7 +25,6 @@ int throttleDelay = 10;
 int throttleCount = 0;
 
 // Throttle variables
-int inputThrottle = 0;
 int globalThrottle = 0;
 int maxThrottleDerivation = 40;
 
@@ -49,86 +49,55 @@ void droneSetup() {
 
 void droneLoop() {
     while (radio.available() > 0) {
-    bool done = false;
+    boolean done = false;
     
     while (!done) {
-      done = radio.read(throttle, sizeof(throttle));
+      done = radio.read(inputThrottle, sizeof(inputThrottle));
       stationLost = false;
-      
-      for (int i = 0; i < 4; i++) {
         
-        if (throttle[i] == 0) {
-          globalThrottle = 0;
-        } else if (throttle[i] > 0 && throttle[i] < 180) {
-          globalThrottle = throttle[0];
-        }
-      }      
-      lastCommandTime = millis();
-    }
-  }
-  
-  
-  // DEBUG
-  if (startCount < startDelay) {
-    startCount++;
-  } else {
-    if (globalThrottle == 0) {
-      globalThrottle = 60;
-    }
-    if (throttleCount < throttleDelay) {
-      if (globalThrottle < inputThrottle) {
-        globalThrottle++;
-        throttleCount = 0;
+      if (inputThrottle[0] == 0) {
+        globalThrottle = 0;
+      } else if (inputThrottle[0] >= 60 && inputThrottle[0] < 180) {
+        globalThrottle = inputThrottle[0];
       }
-    } else {
-      throttleCount++;
+      
+      lastCommandTime = millis();
+      Serial.print("Received ");
+      Serial.println(globalThrottle);
     }
   }
   
-  float orientation[] = {yaw, pitch, roll};
+  if (globalThrottle >= 60) {
   
-  Serial.print(TO_DEG(orientation[2]));
-  Serial.print(" ");
-  Serial.print(gyro[2]);
-  Serial.print(" ");
-  
-  float throttlePitch = throttleCalculation(orientation[1], gyro[1]);
-  float throttleRoll = throttleCalculation(orientation[2], gyro[0]);
-  
-  Serial.print(throttleRoll);
-  Serial.print(" ");
-  
-  throttle[0] = globalThrottle + throttlePitch - throttleRoll;
-  throttle[1] = globalThrottle + throttlePitch + throttleRoll;
-  
-  throttle[2] = globalThrottle - throttlePitch + throttleRoll;
-  throttle[3] = globalThrottle - throttlePitch - throttleRoll;
+    float orientation[] = {yaw, pitch, roll};
+    
+    float throttlePitch = throttleCalculation(orientation[1], gyro[1]);
+    float throttleRoll = throttleCalculation(orientation[2], gyro[0]);
+    
+    throttle[0] = globalThrottle + throttlePitch - throttleRoll;
+    throttle[1] = globalThrottle + throttlePitch + throttleRoll;
+    
+    throttle[2] = globalThrottle - throttlePitch + throttleRoll;
+    throttle[3] = globalThrottle - throttlePitch - throttleRoll;
+    
+    for (int i = 0; i < 4; i++) {
+      if (throttle[i] < 60) {
+        throttle[i] = 60;
+      } else if (throttle[i] > 130) {
+        throttle[i] = 130;
+      }
+    }
+  } else {
+    for (int i = 0; i < 4; i++) {
+      throttle[i] = 0;
+    }
+  }
   
   for (int i = 0; i < 4; i++) {
-    if (throttle[i] < 60) {
-      throttle[i] = 60;
-    } else if (throttle[i] > 130) {
-      throttle[i] = 130;
-    }
+    motors[i].write(throttle[i]);
   }
-  
     
   // DEBUG
-  if (startCount >= startDelay) {
-    Serial.print(throttle[0]);
-    Serial.print(" ");
-    Serial.print(throttle[1]);
-    Serial.print(" ");
-    Serial.print(throttle[2]);
-    Serial.print(" ");
-    Serial.print(throttle[3]);
-  
-    for (int i = 0; i < 4; i++) {
-      motors[i].write(throttle[i]);
-    }
-  }
-  
-  /*
   Serial.print(throttle[0]);
   Serial.print(" ");
   Serial.print(throttle[1]);
@@ -136,7 +105,6 @@ void droneLoop() {
   Serial.print(throttle[2]);
   Serial.print(" ");
   Serial.print(throttle[3]);
-  */
   
   Serial.println("");
   
@@ -149,9 +117,8 @@ void droneLoop() {
 void baseStationLost() {
   if (!stationLost) {
     Serial.println("Basestation lost!");
-    for (int i = 0; i < 4; i++) {
-      motors[i].write(0);
-    }
+    
+    globalThrottle = 0;
     
     stationLost = true;
   }

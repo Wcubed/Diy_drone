@@ -22,7 +22,7 @@ const uint64_t pipe = 0xE8E8F0F0E1LL;
 RF24 radio(CE_PIN, CSN_PIN);
 int throttle[1];
 
-unsigned long delayTime = 2000;
+unsigned long delayTime = 100;
 unsigned long lastTime;
 
 void setup()
@@ -44,8 +44,9 @@ void loop()
         throttle[0] = 0;
         Serial.println("Killswitch");
       } else {
-        int id = message.substring(0, 1).toInt();
-        int b = message.substring(2).toInt();
+        int b = message.toInt();
+        
+        Serial.println(b);
         
         if (b >= 0 && b <= 130) {
           throttle[0] = b;    
