@@ -24,7 +24,7 @@ int throttleDelay = 10;
 int throttleCount = 0;
 
 // Throttle variables
-int inputThrottle = 90;
+int inputThrottle = 0;
 int globalThrottle = 0;
 int maxThrottleDerivation = 40;
 
@@ -58,9 +58,9 @@ void droneLoop() {
       for (int i = 0; i < 4; i++) {
         
         if (throttle[i] == 0) {
-          motors[i].write(0);
+          globalThrottle = 0;
         } else if (throttle[i] > 0 && throttle[i] < 180) {
-          motors[i].write(throttle[i]);
+          globalThrottle = throttle[0];
         }
       }      
       lastCommandTime = millis();

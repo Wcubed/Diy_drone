@@ -20,7 +20,7 @@
 const uint64_t pipe = 0xE8E8F0F0E1LL;
 
 RF24 radio(CE_PIN, CSN_PIN);
-int throttle[4];
+int throttle[1];
 
 unsigned long delayTime = 2000;
 unsigned long lastTime;
@@ -32,9 +32,6 @@ void setup()
   radio.openWritingPipe(pipe);
   
   throttle[0] = 0;
-  throttle[1] = 0;
-  throttle[2] = 0;
-  throttle[3] = 0;
 }
 
 void loop()
@@ -44,30 +41,14 @@ void loop()
     
     if (message != NULL) {
       if (message.substring(0, 2) == "00") {
-        for (int i = 0; i < 4; i++) {
-          throttle[i] = 0;
-        }
+        throttle[0] = 0;
         Serial.println("Killswitch");
       } else {
         int id = message.substring(0, 1).toInt();
         int b = message.substring(2).toInt();
         
         if (b >= 0 && b <= 130) {
-          if (id == 4) {
-            for (int i = 0; i < 4; i++) {
-              throttle[i] = b;
-            }
-            
-            Serial.print("All ");
-            Serial.println(b);
-            
-          } else {
-            throttle[id] = b;
-            
-            Serial.print(id);
-            Serial.print(" ");
-            Serial.println(b);
-          }
+          throttle[0] = b;    
         }
       }
       radio.write( throttle, sizeof(throttle) );
