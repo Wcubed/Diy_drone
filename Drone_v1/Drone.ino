@@ -18,6 +18,8 @@ Servo motors[4];
 int inputThrottle[1];
 int throttle[4] = {0, 0, 0, 0};
 
+int presets[] = {0, 0, 5, 0};
+
 // DEBUG
 int startDelay = 110;
 int startCount = 0;
@@ -26,7 +28,7 @@ int throttleCount = 0;
 
 // Throttle variables
 int globalThrottle = 0;
-int maxThrottleDerivation = 40;
+int maxThrottleDerivation = 30;
 
 // Timekeeping
 unsigned long lastCommandTime;
@@ -74,11 +76,11 @@ void droneLoop() {
     float throttlePitch = throttleCalculation(orientation[1], gyro[1]);
     float throttleRoll = throttleCalculation(orientation[2], gyro[0]);
     
-    throttle[0] = globalThrottle + throttlePitch - throttleRoll;
-    throttle[1] = globalThrottle + throttlePitch + throttleRoll;
+    throttle[0] = presets[0] + globalThrottle + throttlePitch - throttleRoll;
+    throttle[1] = presets[1] + globalThrottle + throttlePitch + throttleRoll;
     
-    throttle[2] = globalThrottle - throttlePitch + throttleRoll;
-    throttle[3] = globalThrottle - throttlePitch - throttleRoll;
+    throttle[2] = presets[2] + globalThrottle - throttlePitch + throttleRoll;
+    throttle[3] = presets[3] + globalThrottle - throttlePitch - throttleRoll;
     
     for (int i = 0; i < 4; i++) {
       if (throttle[i] < 60) {
@@ -87,6 +89,7 @@ void droneLoop() {
         throttle[i] = 130;
       }
     }
+    
   } else {
     for (int i = 0; i < 4; i++) {
       throttle[i] = 0;
@@ -128,9 +131,9 @@ float throttleCalculation(float angle, float angleSpeed) {
   float output;
   angle = radians(int(degrees(angle)));
   if (angle > 0) {
-    output = sin(angle) * maxThrottleDerivation + 0.8 * (float)(angleSpeed/3000) * maxThrottleDerivation;
+    output = 1.1 * sin(angle) * maxThrottleDerivation + 0.8 * (float)(angleSpeed/3000) * maxThrottleDerivation;
   } else {
-    output = sin(angle) * maxThrottleDerivation + 0.8 * (float)(angleSpeed/3000) * maxThrottleDerivation;
+    output = 1.1 * sin(angle) * maxThrottleDerivation + 0.8 * (float)(angleSpeed/3000) * maxThrottleDerivation;
   }
   
   return output;
