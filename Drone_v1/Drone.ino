@@ -47,6 +47,7 @@ void droneSetup() {
   radio.begin();
   radio.openReadingPipe(1, pipe);
   radio.startListening();
+
 }
 
 void droneLoop() {

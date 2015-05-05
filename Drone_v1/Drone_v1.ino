@@ -497,9 +497,11 @@ void setup()
 // Main loop
 void loop()
 {
+
   // Time to read the sensors again?
   if((millis() - timestamp) >= OUTPUT__DATA_INTERVAL)
   {
+      Serial.println(MAG_Heading);
     timestamp_old = timestamp;
     timestamp = millis();
     if (timestamp > timestamp_old)
