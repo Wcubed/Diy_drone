@@ -27,7 +27,7 @@ unsigned long lastTime;
 
 void setup()
 {
-  Serial.begin(9600);
+  Serial.begin(9600);  
   radio.begin();
   radio.openWritingPipe(pipe);
   
@@ -39,26 +39,23 @@ void loop()
   while (Serial.available() > 0) {
     String message = Serial.readStringUntil('\n');
     
-    if (message != NULL) {
-      if (message.substring(0, 2) == "00") {
-        throttle[0] = 0;
-        Serial.println("Killswitch");
-      } else {
-        int b = message.toInt();
-        
-        Serial.println(b);
-        
-        if (b >= 0 && b <= 130) {
-          throttle[0] = b;    
-        }
-      }
-      radio.write( throttle, sizeof(throttle) );
+    int b = message.toInt();
+    
+    if (b == 200) {
+      throttle[0] = 200;
     }
+    
+    if (b >= 0 && b <= 130) {
+      throttle[0] = b;    
+    }
+
+    radio.write( throttle, sizeof(throttle) );
+    Serial.println(throttle[0]);
   }
   
   unsigned long currentTime = millis();
   if (currentTime - lastTime >= delayTime) {
-    Serial.println("Send");
+    Serial.println(throttle[0]);
     radio.write( throttle, sizeof(throttle) );
     lastTime = currentTime;
   }

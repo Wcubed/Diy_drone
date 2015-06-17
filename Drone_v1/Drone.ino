@@ -18,7 +18,7 @@ Servo motors[4];
 int inputThrottle[1];
 int throttle[4] = {0, 0, 0, 0};
 
-int presets[] = {0, 0, 5, 0};
+int presets[] = {5, 0, 5, 0};
 
 // DEBUG
 int startDelay = 110;
@@ -28,7 +28,7 @@ int throttleCount = 0;
 
 // Throttle variables
 int globalThrottle = 0;
-int maxThrottleDerivation = 30;
+int maxThrottleDerivation = 20;
 
 // Timekeeping
 unsigned long lastCommandTime;
@@ -57,8 +57,9 @@ void droneLoop() {
     while (!done) {
       done = radio.read(inputThrottle, sizeof(inputThrottle));
       stationLost = false;
-        
-      if (inputThrottle[0] == 0) {
+      
+      // 200 is kill
+      if (inputThrottle[0] == 200) {
         globalThrottle = 0;
       } else if (inputThrottle[0] >= 60 && inputThrottle[0] < 180) {
         globalThrottle = inputThrottle[0];
@@ -131,11 +132,8 @@ void baseStationLost() {
 float throttleCalculation(float angle, float angleSpeed) {
   float output;
   angle = radians(int(degrees(angle)));
-  if (angle > 0) {
-    output = 1.1 * sin(angle) * maxThrottleDerivation + 0.8 * (float)(angleSpeed/3000) * maxThrottleDerivation;
-  } else {
-    output = 1.1 * sin(angle) * maxThrottleDerivation + 0.8 * (float)(angleSpeed/3000) * maxThrottleDerivation;
-  }
+  
+  output = 0.5 * sin(angle) * maxThrottleDerivation + 0.5 * (float)(angleSpeed/3000) * maxThrottleDerivation;
   
   return output;
 }
