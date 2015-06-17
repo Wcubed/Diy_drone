@@ -14,7 +14,9 @@ ControllStick stick2;
 float transX;
 float transY;
 
-int lastThrottle;
+float lastThrottle;
+float lastX;
+float lastY;
 
 Serial serial;
 
@@ -24,7 +26,7 @@ void setup(){
   frameRate(100);
   
   println(Serial.list());
-  serial = new Serial(this, Serial.list()[0], 9600);
+  serial = new Serial(this, Serial.list()[0], 57600);
 
   transX = width/2;
   transY = height/2;
@@ -99,7 +101,7 @@ void draw(){
     String message = serial.readStringUntil(10);
     
     if (message != null) {
-      print(message);
+      //print(message);
     }
   }
   
@@ -111,27 +113,48 @@ void draw(){
   float turnval = stick1.getX();
   
   // Deadzone
-  xval = applyDeadzone(xval, 0.2);
-  yval = applyDeadzone(yval, 0.2);
+  xval = map(applyDeadzone(xval, 0.2), -1, 1, -5, 5);
+  yval = map(applyDeadzone(yval, 0.2), -1, 1, -5, 5);
   turnval = applyDeadzone(turnval, 0.2);
   
-  float trigger1val = map(stick1.getY(), -1, 1, 55, 100);
-  float trigger2val = int(map(stick2.getX(), -1, 1, 55, 100));
+  float trigger1val = stick1.getY();
+  float trigger2val = map(stick2.getX(), -1, 1, 55, 100);
   
+  // X
+  if (xval != lastX) {
+    if (xval == 0) {
+      sendX(0);
+      sendX(0);
+      sendX(0);
+    }
+    sendX(xval);
+    lastX = xval;
+  }
+  
+  // Y
+  if (yval != lastY) {
+    if (yval == 0) {
+      sendY(0);
+      sendY(0);
+      sendY(0);
+    }
+    sendY(yval);
+    lastY = yval;
+  }
+  
+  // Throttle
   if (trigger2val != lastThrottle) {
     if (trigger2val < 60) {
-      trigger2val = 0;
-      serial.write("200\n");
-      serial.write("200\n");
-      serial.write("200\n");
-      serial.write("200\n");
+      trigger2val = 200;
+      sendThrottle(trigger2val);
+      sendThrottle(trigger2val);
+      sendThrottle(trigger2val);
       //println("Killswitch");
-      lastThrottle = 55;
+      lastThrottle = 0;
     } else {
-      String message = int(trigger2val)+"\n";
-      serial.write(message);
+      sendThrottle(trigger2val);
       //print(message);
-      lastThrottle = int(trigger2val);
+      lastThrottle = trigger2val;
     }
   }
 }
@@ -150,4 +173,19 @@ float applyDeadzone(float val, float zone) {
   }
   
   return val;
+}
+
+void sendThrottle(float t) {
+  serial.write("t"+int(t)+"\n");
+  println(t);
+}
+
+void sendX(float x) {
+  serial.write("x"+int(x)+"\n");
+  println(x);
+}
+
+void sendY(float y) {
+  serial.write("y"+int(y)+"\n");
+  println(y);
 }
