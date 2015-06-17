@@ -15,10 +15,10 @@ RF24 radio(CE_PIN, CSN_PIN);
 
 Servo motors[4];
 
-int inputThrottle[1];
+int inputThrottle[3];
 int throttle[4] = {0, 0, 0, 0};
 
-int presets[] = {5, 0, 5, 0};
+int presets[] = {0, 0, 5, 0};
 
 // DEBUG
 int startDelay = 110;
@@ -32,7 +32,7 @@ int maxThrottleDerivation = 20;
 
 // Timekeeping
 unsigned long lastCommandTime;
-unsigned long commandTimeout = 7000;
+unsigned long commandTimeout = 1000;
 
 boolean stationLost = false;
 
@@ -78,11 +78,11 @@ void droneLoop() {
     float throttlePitch = throttleCalculation(orientation[1], gyro[1]);
     float throttleRoll = throttleCalculation(orientation[2], gyro[0]);
     
-    throttle[0] = presets[0] + globalThrottle + throttlePitch - throttleRoll;
-    throttle[1] = presets[1] + globalThrottle + throttlePitch + throttleRoll;
+    throttle[0] = presets[0] + globalThrottle + throttlePitch - throttleRoll + inputThrottle[1] - inputThrottle[2];
+    throttle[1] = presets[1] + globalThrottle + throttlePitch + throttleRoll + inputThrottle[1] + inputThrottle[2];
     
-    throttle[2] = presets[2] + globalThrottle - throttlePitch + throttleRoll;
-    throttle[3] = presets[3] + globalThrottle - throttlePitch - throttleRoll;
+    throttle[2] = presets[2] + globalThrottle - throttlePitch + throttleRoll - inputThrottle[1] + inputThrottle[2];
+    throttle[3] = presets[3] + globalThrottle - throttlePitch - throttleRoll - inputThrottle[1] - inputThrottle[2];
     
     for (int i = 0; i < 4; i++) {
       if (throttle[i] < 60) {
